@@ -113,15 +113,15 @@ final class MacroStatView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        backgroundColor = UIColor.label.withAlphaComponent(0.15)
+        backgroundColor = UIColor.label.withAlphaComponent(0.6)
         layer.cornerRadius = 16
         layer.masksToBounds = true
         
         titleLabel.font = .systemFont(ofSize: 13, weight: .regular)
-        titleLabel.textColor = .label
+        titleLabel.textColor = .systemBackground
         
         valueLabel.font = .systemFont(ofSize: 18, weight: .medium)
-        valueLabel.textColor = .label
+        valueLabel.textColor = .systemBackground
         
         addSubview(titleLabel)
         addSubview(valueLabel)
@@ -143,7 +143,7 @@ final class MacroStatView: UIView {
 
 // MARK: - ViewController
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, ScanEANViewControllerDelegate {
     
     let gradientBackView = PastelGradientView()
     
@@ -168,9 +168,17 @@ class ViewController: UIViewController {
     
     private let ringView = CalorieRingView()
     
+    private let backView: UIView = {
+        let v = UIView()
+        v.backgroundColor = .label.withAlphaComponent(0.05)
+        return v
+    }()
+    
     private let viewEntriesButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("View entries", for: .normal)
+        b.setTitle(" Entries", for: .normal)
+        b.setImage(UIImage(systemName: "note.text")?.withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 14))), for: .normal)
+        b.tintColor = .label
         b.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         b.setTitleColor(.label, for: .normal)
         b.backgroundColor = UIColor.label.withAlphaComponent(0.15)
@@ -181,7 +189,9 @@ class ViewController: UIViewController {
     // NEW: View suggestions button
     private let viewSuggestionsButton: UIButton = {
         let b = UIButton(type: .system)
-        b.setTitle("View suggestions", for: .normal)
+        b.setTitle(" Suggestions", for: .normal)
+        b.setImage(UIImage(systemName: "sparkles.2")?.withConfiguration(UIImage.SymbolConfiguration(font: .systemFont(ofSize: 14))), for: .normal)
+        b.tintColor = .label
         b.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
         b.setTitleColor(.label, for: .normal)
         b.backgroundColor = UIColor.label.withAlphaComponent(0.15)
@@ -193,8 +203,8 @@ class ViewController: UIViewController {
         let b = UIButton(type: .system)
         let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
         b.setImage(UIImage(systemName: "plus", withConfiguration: config), for: .normal)
-        b.tintColor = .label
-        b.backgroundColor = UIColor.label.withAlphaComponent(0.15)
+        b.tintColor = .systemBackground
+        //b.backgroundColor = UIColor.label.withAlphaComponent(0.9)
         b.layer.cornerRadius = 35
         b.clipsToBounds = true
         return b
@@ -226,6 +236,11 @@ class ViewController: UIViewController {
         
         view.addSubview(gradientBackView)
         view.addSubview(datePicker)
+        
+        backView.layer.cornerRadius = 24
+        backView.layer.cornerCurve = .continuous
+        view.addSubview(backView)
+        
         view.addSubview(ringView)
         view.addSubview(caloriesLabel)
         view.addSubview(carbsView)
@@ -234,6 +249,20 @@ class ViewController: UIViewController {
         view.addSubview(viewEntriesButton)
         view.addSubview(viewSuggestionsButton)   // NEW
         view.addSubview(addButton)
+        
+        addButton.configuration = .glass()
+        
+        addButton.menu = UIMenu(children: [
+            UIAction(title: "Browse food", image: UIImage(systemName: "magnifyingglass"), handler: { _ in
+                //
+            }),
+            UIAction(title: "Scan barcode", image: UIImage(systemName: "barcode.viewfinder"), handler: { _ in
+                let viewController = ScanEANViewController()
+                viewController.delegate = self
+                self.present(UINavigationController(rootViewController: viewController), animated: true)
+            }),
+        ])
+        addButton.showsMenuAsPrimaryAction = true
         
         // Example: 65% of daily goal
         ringView.setProgress(0.65, animated: false)
@@ -287,31 +316,10 @@ class ViewController: UIViewController {
         
         let addButtonSize: CGFloat = 70
         addButton.frame = CGRect(
-            x: width - 20 - addButtonSize,
+            x: (width - addButtonSize) / 2,
             y: buttonY - 5,
             width: addButtonSize,
             height: addButtonSize
-        )
-        
-        viewEntriesButton.sizeToFit()
-        let veSize = viewEntriesButton.bounds.size
-        
-        viewEntriesButton.frame = CGRect(
-            x: 20,
-            y: buttonY,
-            width: veSize.width + 30,
-            height: veSize.height + 6
-        )
-        
-        // NEW: View suggestions button under View entries
-        viewSuggestionsButton.sizeToFit()
-        let vsSize = viewSuggestionsButton.bounds.size
-        
-        viewSuggestionsButton.frame = CGRect(
-            x: 20,
-            y: viewEntriesButton.frame.maxY + 10,
-            width: vsSize.width + 30,
-            height: vsSize.height + 6
         )
         
         // Macro boxes above the *top* button row (View entries)
@@ -322,10 +330,58 @@ class ViewController: UIViewController {
         let totalWidth = width - padding * 2
         let cardWidth = (totalWidth - spacing * 2) / 3
         
-        let cardY = viewEntriesButton.frame.minY - 20 - cardHeight
+        let cardY = addButton.frame.minY - 12 - cardHeight - 15
         
         carbsView.frame = CGRect(x: padding, y: cardY, width: cardWidth, height: cardHeight)
         proteinView.frame = CGRect(x: carbsView.frame.maxX + spacing, y: cardY, width: cardWidth, height: cardHeight)
         fatView.frame = CGRect(x: proteinView.frame.maxX + spacing, y: cardY, width: cardWidth, height: cardHeight)
+        
+        viewEntriesButton.frame = CGRect(
+            x: padding,
+            y: cardY - 60,
+            width: (view.frame.width - 2 * padding - spacing) / 2,
+            height: 45
+        )
+        
+        viewSuggestionsButton.frame = CGRect(
+            x: viewEntriesButton.frame.maxX + spacing,
+            y: cardY - 60,
+            width: (view.frame.width - 2 * padding - spacing) / 2,
+            height: 45
+        )
+        
+        backView.frame = CGRect(x: 0, y: viewSuggestionsButton.frame.minY - 30, width: view.frame.width, height: (view.frame.height - viewSuggestionsButton.frame.minY - 30 + view.safeAreaInsets.bottom + 100))
+    }
+    
+    
+    func scanEANViewController(_ viewController: ScanEANViewController, didDetectEAN code: String) {
+        viewController.dismiss(animated: true) {
+            Task {
+                if let food = try await APIManager.shared.fetchFoodData(fromEAN: code) {
+                    let alert = UIAlertController(title: food.name, message: [
+                        String(food.amount(of: .energyKcal, for: 100) ?? 0) + " kcal",
+                        String(food.amount(of: .carbsG, for: 100) ?? 0) + " g carbs",
+                        String(food.amount(of: .proteinG, for: 100) ?? 0) + " g protein",
+                        String(food.amount(of: .fatG, for: 100) ?? 0) + " g fat"
+                    ].joined(separator: "\n"), preferredStyle: .alert)
+                    
+                    alert.addAction(UIAlertAction(title: "Log food", style: .default) { _ in
+                        
+                    })
+                    
+                    alert.addAction(UIAlertAction(title: "Edit portion", style: .default) { _ in
+                        
+                    })
+                    
+                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                    
+                    self.present(alert, animated: true)
+                } else {
+                    let alert = UIAlertController(title: "Something went wrong...", message: nil, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Done", style: .cancel))
+                    self.present(alert, animated: true)
+                }
+            }
+        }
     }
 }
