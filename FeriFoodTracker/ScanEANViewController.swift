@@ -7,7 +7,6 @@
 
 import UIKit
 import AVFoundation
-import Firebase
 
 protocol ScanEANViewControllerDelegate: AnyObject {
     func scanEANViewController(_ viewController: ScanEANViewController, didDetectEAN code: String)
@@ -35,16 +34,14 @@ final class ScanEANViewController: UIViewController, AVCaptureMetadataOutputObje
         super.viewDidLoad()
 
         view.backgroundColor = .black
-        self.title = "Scan barcode".localized()
-        self.navigationItem.rightBarButtonItem = self.getNavigationItem(image: "xmark",
-                                                                        target: self,
-                                                                        action: #selector(onClose))
+        self.title = "Scan barcode"
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(onClose))
 
         // Make this screen modal for VoiceOver focus
         view.accessibilityViewIsModal = true
         // Let VoiceOver know we’re on the scan screen
         UIAccessibility.post(notification: .screenChanged,
-                             argument: "Scan barcode".localized())
+                             argument: "Scan barcode")
 
         // Camera preview
         previewLayer = AVCaptureVideoPreviewLayer(session: session)
@@ -57,12 +54,12 @@ final class ScanEANViewController: UIViewController, AVCaptureMetadataOutputObje
         view.addSubview(overlayView)
 
         // Give an explanation for VoiceOver users
-        view.accessibilityLabel = "Barcode scanner".localized()
-        view.accessibilityHint = "Point the barcode inside the box on the screen. It will be scanned automatically.".localized()
+        view.accessibilityLabel = "Barcode scanner"
+        view.accessibilityHint = "Point the barcode inside the box on the screen. It will be scanned automatically."
 
         // Try to give the close button a clearer label
-        navigationItem.rightBarButtonItem?.accessibilityLabel = "Close".localized()
-        navigationItem.rightBarButtonItem?.accessibilityHint = "Dismisses the barcode scanner.".localized()
+        navigationItem.rightBarButtonItem?.accessibilityLabel = "Close"
+        navigationItem.rightBarButtonItem?.accessibilityHint = "Dismisses the barcode scanner."
 
         configureCamera()
     }
@@ -100,7 +97,7 @@ final class ScanEANViewController: UIViewController, AVCaptureMetadataOutputObje
     }
 
     @objc
-    override func onClose() {
+    func onClose() {
         self.dismiss(animated: true)
     }
 
@@ -151,7 +148,7 @@ final class ScanEANViewController: UIViewController, AVCaptureMetadataOutputObje
 
         // Inform VoiceOver that scanning is active
         UIAccessibility.post(notification: .announcement,
-                             argument: "Camera active. Point the barcode inside the box to scan.".localized())
+                             argument: "Camera active. Point the barcode inside the box to scan.")
 
         // Ensure rectOfInterest is set after layout
         DispatchQueue.main.async { [weak self] in
@@ -163,11 +160,11 @@ final class ScanEANViewController: UIViewController, AVCaptureMetadataOutputObje
 
     private func showCameraDenied() {
         let alert = UIAlertController(
-            title: "Camera Access Needed".localized(),
-            message: "Enable camera access in Settings to scan barcodes.".localized(),
+            title: "Camera Access Needed",
+            message: "Enable camera access in Settings to scan barcodes.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "Done".localized(), style: .default))
+        alert.addAction(UIAlertAction(title: "Done", style: .default))
         present(alert, animated: true)
     }
 
@@ -185,11 +182,10 @@ final class ScanEANViewController: UIViewController, AVCaptureMetadataOutputObje
             didSendResult = true
             if session.isRunning { session.stopRunning() }
             UINotificationFeedbackGenerator().notificationOccurred(.success)
-            Analytics.logEvent("scanned_ean", parameters: nil)
 
             // VoiceOver feedback on success
             UIAccessibility.post(notification: .announcement,
-                                 argument: String(format: "Barcode %@ scanned successfully.".localized(), value))
+                                 argument: String(format: "Barcode %@ scanned successfully.", value))
 
             delegate?.scanEANViewController(self, didDetectEAN: value)
             break
