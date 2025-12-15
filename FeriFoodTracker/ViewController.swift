@@ -145,6 +145,9 @@ final class MacroStatView: UIView {
 
 class ViewController: UIViewController, ScanEANViewControllerDelegate {
     
+    
+    static var selectedDate: Date = .now
+    
     let gradientBackView = PastelGradientView()
     
     private let datePicker: UIDatePicker = {
@@ -153,6 +156,10 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         if #available(iOS 13.4, *) { p.preferredDatePickerStyle = .compact }
         p.tintColor = .label
         p.contentHorizontalAlignment = .center
+        p.addAction(UIAction(handler: { _ in
+            ViewController.selectedDate = p.date
+        }), for: .valueChanged)
+        p.date = ViewController.selectedDate
         return p
     }()
     
@@ -234,6 +241,9 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //iCloud
+        CloudManager.shared.persistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
+        
         view.addSubview(gradientBackView)
         view.addSubview(datePicker)
         
@@ -247,7 +257,7 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         view.addSubview(proteinView)
         view.addSubview(fatView)
         view.addSubview(viewEntriesButton)
-        view.addSubview(viewSuggestionsButton)   // NEW
+        view.addSubview(viewSuggestionsButton)
         view.addSubview(addButton)
         
         addButton.configuration = .glass()
@@ -358,24 +368,10 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         viewController.dismiss(animated: true) {
             Task {
                 if let food = try await APIManager.shared.fetchFoodData(fromEAN: code) {
-                    let alert = UIAlertController(title: food.name, message: [
-                        String(food.amount(of: .energyKcal, for: 100) ?? 0) + " kcal",
-                        String(food.amount(of: .carbsG, for: 100) ?? 0) + " g carbs",
-                        String(food.amount(of: .proteinG, for: 100) ?? 0) + " g protein",
-                        String(food.amount(of: .fatG, for: 100) ?? 0) + " g fat"
-                    ].joined(separator: "\n"), preferredStyle: .alert)
-                    
-                    alert.addAction(UIAlertAction(title: "Log food", style: .default) { _ in
-                        
-                    })
-                    
-                    alert.addAction(UIAlertAction(title: "Edit portion", style: .default) { _ in
-                        
-                    })
-                    
-                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-                    
-                    self.present(alert, animated: true)
+                    let page = LogFoodViewController(food: food) {
+                        //Refresh
+                    }
+                    self.present(UINavigationController(rootViewController: page), animated: true)
                 } else {
                     let alert = UIAlertController(title: "Something went wrong...", message: nil, preferredStyle: .alert)
                     alert.addAction(UIAlertAction(title: "Done", style: .cancel))
