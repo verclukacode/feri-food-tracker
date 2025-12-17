@@ -26,7 +26,7 @@ class APIManager {
     public static func getKey() -> String {
         let key1 = "RE".reversed()
         let key2 = "i".uppercased()
-        return "F" + key1 + key2
+        return "NOF" + key1 + key2
     }
     
     
@@ -39,7 +39,7 @@ class APIManager {
         var merged: [FoodData] = []
 
         // If prompt too short OR we already reached the cap, return early
-        if trimmed.count < 4 || merged.count >= maxNumberOfResults {
+        if trimmed.count < 3 || merged.count >= maxNumberOfResults {
             completion(.success(Array(merged.prefix(maxNumberOfResults))))
             return
         }

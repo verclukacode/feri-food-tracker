@@ -324,6 +324,7 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
     
     @objc
     func onClose() {
+        self.completion?()
         if let navigationController = self.navigationController, navigationController.viewControllers.count > 1 {
             self.navigationController?.popViewController(animated: true)
         } else {

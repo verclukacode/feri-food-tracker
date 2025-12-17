@@ -147,6 +147,7 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
     
     
     static var selectedDate: Date = .now
+    static var activeObject: ViewController?
     
     let gradientBackView = PastelGradientView()
     
@@ -158,6 +159,7 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         p.contentHorizontalAlignment = .center
         p.addAction(UIAction(handler: { _ in
             ViewController.selectedDate = p.date
+            ViewController.activeObject?.refresh()
         }), for: .valueChanged)
         p.date = ViewController.selectedDate
         return p
@@ -211,7 +213,6 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         let config = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
         b.setImage(UIImage(systemName: "plus", withConfiguration: config), for: .normal)
         b.tintColor = .systemBackground
-        //b.backgroundColor = UIColor.label.withAlphaComponent(0.9)
         b.layer.cornerRadius = 35
         b.clipsToBounds = true
         return b
@@ -220,26 +221,25 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
     private let carbsView: MacroStatView = {
         let v = MacroStatView()
         v.titleLabel.text = "Carbs"
-        v.valueLabel.text = "210 g"
         return v
     }()
     
     private let proteinView: MacroStatView = {
         let v = MacroStatView()
         v.titleLabel.text = "Protein"
-        v.valueLabel.text = "145 g"
         return v
     }()
     
     private let fatView: MacroStatView = {
         let v = MacroStatView()
         v.titleLabel.text = "Fat"
-        v.valueLabel.text = "78 g"
         return v
     }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        ViewController.activeObject = self
         
         //iCloud
         CloudManager.shared.persistentContainer = (UIApplication.shared.delegate as! AppDelegate).persistentContainer
@@ -260,11 +260,21 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         view.addSubview(viewSuggestionsButton)
         view.addSubview(addButton)
         
+        viewEntriesButton.addAction(UIAction(handler: { _ in
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            self.present(UINavigationController(rootViewController: EntriesViewController() {
+                self.refresh()
+            }), animated: true)
+        }), for: .touchUpInside)
+        
         addButton.configuration = .glass()
         
         addButton.menu = UIMenu(children: [
             UIAction(title: "Browse food", image: UIImage(systemName: "magnifyingglass"), handler: { _ in
-                //
+                let viewController = LogFoodBrowseViewController(selectedDate: ViewController.selectedDate) {
+                    self.refresh()
+                }
+                self.present(UINavigationController(rootViewController: viewController), animated: true)
             }),
             UIAction(title: "Scan barcode", image: UIImage(systemName: "barcode.viewfinder"), handler: { _ in
                 let viewController = ScanEANViewController()
@@ -274,8 +284,7 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         ])
         addButton.showsMenuAsPrimaryAction = true
         
-        // Example: 65% of daily goal
-        ringView.setProgress(0.65, animated: false)
+        self.refresh()
     }
     
     override func viewDidLayoutSubviews() {
@@ -299,17 +308,10 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
         
         // Calories label centered
         caloriesLabel.frame = CGRect(
-            x: 20,
-            y: height * 0.40 - 24,
-            width: width - 40,
-            height: 1000
-        )
-        caloriesLabel.sizeToFit()
-        caloriesLabel.frame = CGRect(
-            x: (width - caloriesLabel.frame.width) / 2,
-            y: height * 0.40 - (caloriesLabel.frame.height / 2),
-            width: caloriesLabel.frame.width,
-            height: caloriesLabel.frame.height
+            x: (view.frame.width - 120) / 2,
+            y: height * 0.40 - 120 / 2,
+            width: 120,
+            height: 120
         )
         
         // Ring around calories label
@@ -369,7 +371,7 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
             Task {
                 if let food = try await APIManager.shared.fetchFoodData(fromEAN: code) {
                     let page = LogFoodViewController(food: food) {
-                        //Refresh
+                        self.refresh()
                     }
                     self.present(UINavigationController(rootViewController: page), animated: true)
                 } else {
@@ -380,4 +382,34 @@ class ViewController: UIViewController, ScanEANViewControllerDelegate {
             }
         }
     }
+}
+
+
+extension ViewController {
+    
+    func refresh() {
+        
+        CloudManager.shared.getAll(for: ViewController.selectedDate) { foodLogs in
+            var calories: Double = 0
+            var carbs: Double = 0
+            var proteins: Double = 0
+            var fats: Double = 0
+            
+            for foodLog in foodLogs {
+                calories += foodLog.calories
+                carbs += foodLog.carbs
+                proteins += foodLog.protein
+                fats += foodLog.fat
+            }
+            
+            self.caloriesLabel.text = "\(Int(calories))"
+            self.ringView.setProgress(calories / UserData.shared.goalCalories, animated: true)
+            
+            self.carbsView.valueLabel.text = "\(Int(carbs)) g"
+            self.proteinView.valueLabel.text = "\(Int(proteins)) g"
+            self.fatView.valueLabel.text = "\(Int(fats)) g"
+        }
+        
+    }
+    
 }
