@@ -167,7 +167,7 @@ extension EntriesViewController {
                 guard let data = self.data else { return }
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 
-                let alert = UIAlertController(title: "Choose", message: nil, preferredStyle: .actionSheet)
+                let alert = UIAlertController(title: self.data?.name ?? "Choose", message: nil, preferredStyle: .actionSheet)
                 
                 alert.addAction(UIAlertAction(title: "Log again", style: .default, handler: { _ in
                     if let new = data.convertToUSDAFood() {
@@ -177,6 +177,18 @@ extension EntriesViewController {
                             }
                         }), animated: true)
                     }
+                }))
+                
+                alert.addAction(UIAlertAction(title: "Edit", style: .default, handler: { _ in
+                    
+                    let viewController = EditFoodLogViewController(log: data) {
+                        if let vc = self.viewController as? EntriesViewController {
+                            vc.refresh()
+                        }
+                    }
+                    
+                    self.viewController?.present(UINavigationController(rootViewController: viewController), animated: true)
+                    
                 }))
                 
                 alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in

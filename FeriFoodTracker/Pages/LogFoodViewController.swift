@@ -267,15 +267,12 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
         dateInput.addSubview(dateInputPicker)
         
         
-        actionButton.backgroundColor = .label
-        actionButton.setTitleColor(.systemBackground, for: .normal)
+        actionButton.backgroundColor = .systemBlue
+        actionButton.setTitleColor(.white, for: .normal)
         actionButton.tintColor = .systemBackground
         actionButton.layer.cornerRadius = 25
         actionButton.layer.cornerCurve = .continuous
         actionButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
-        if #available(iOS 26.0, *) {
-            actionButton.configuration = .prominentClearGlass()
-        }
         actionButton.addAction(UIAction(handler: { _ in
             self.actionButton.setTitle("Logged", for: .normal)
             self.actionButton.accessibilityLabel = "Logged"
