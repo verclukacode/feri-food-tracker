@@ -275,6 +275,13 @@ final class ViewController: UIViewController, ScanEANViewControllerDelegate {
                 self.refresh()
             }), animated: true)
         }), for: .touchUpInside)
+        
+        viewSuggestionsButton.addAction(UIAction(handler: { _ in
+            
+            let vc = UINavigationController(rootViewController: SuggestionsViewController())
+            self.present(vc, animated: true)
+            
+        }), for: .touchUpInside)
 
         addButton.configuration = .glass()
         addButton.menu = UIMenu(children: [

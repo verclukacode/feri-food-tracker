@@ -97,7 +97,7 @@ final class ScanEANViewController: UIViewController, AVCaptureMetadataOutputObje
     }
 
     @objc
-    func onClose() {
+    override func onClose() {
         self.dismiss(animated: true)
     }
 

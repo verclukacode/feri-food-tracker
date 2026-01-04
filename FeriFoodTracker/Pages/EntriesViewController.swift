@@ -64,7 +64,7 @@ class EntriesViewController: UIViewController, UITextFieldDelegate, UITableViewD
     
     
     @objc
-    func onClose() {
+    override func onClose() {
         self.completion?()
         self.dismiss(animated: true)
     }

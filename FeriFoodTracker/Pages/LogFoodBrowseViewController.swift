@@ -101,7 +101,7 @@ class LogFoodBrowseViewController: UIViewController, UITextFieldDelegate, UITabl
     
     
     @objc
-    func onClose() {
+    override func onClose() {
         self.completion?()
         self.dismiss(animated: true)
     }

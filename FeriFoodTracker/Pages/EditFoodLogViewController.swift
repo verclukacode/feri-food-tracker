@@ -333,7 +333,7 @@ final class EditFoodLogViewController: UIViewController, UITextViewDelegate {
         titleTextView.resignFirstResponder()
     }
 
-    @objc private func onClose() {
+    @objc override internal func onClose() {
         completion?()
         if let nav = navigationController, nav.viewControllers.count > 1 {
             nav.popViewController(animated: true)
