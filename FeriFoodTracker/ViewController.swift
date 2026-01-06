@@ -263,9 +263,7 @@ final class ViewController: UIViewController, ScanEANViewControllerDelegate {
         datePicker.date = ViewController.selectedDate
 
         settingsButton.addAction(UIAction(handler: { _ in
-            
-            //Summon
-            
+            self.present(UINavigationController(rootViewController: SettingsViewController()), animated: true)
         }), for: .touchUpInside)
 
         viewEntriesButton.addAction(UIAction(handler: { [weak self] _ in
