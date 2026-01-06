@@ -131,6 +131,8 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
         
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "xmark"), style: .plain, target: self, action: #selector(onClose))
         
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "info.circle"), style: .plain, target: self, action: #selector(onNutrition))
+        
         self.navigationItem.titleView = {
             let label = UILabel()
             label.text = "Details"
@@ -260,9 +262,9 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
         backScroll.addSubview(dateInput)
         dateInputPicker.contentHorizontalAlignment = .right
         dateInputPicker.datePickerMode = .date
-        dateInputPicker.date = ViewController.selectedDate
+        dateInputPicker.date = HomeViewController.selectedDate
         dateInputPicker.addAction(UIAction(handler: { _ in
-            ViewController.selectedDate = self.dateInputPicker.date
+            HomeViewController.selectedDate = self.dateInputPicker.date
         }), for: .valueChanged)
         dateInput.addSubview(dateInputPicker)
         
@@ -300,7 +302,7 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
                                                    sodium: (data.amount(of: .sodiumMg, for: portion) ?? 0) / 1000,
                                                    sugar: data.amount(of: .sugarsG, for: portion) ?? 0,
                                                    vitaminA: (data.amount(of: .vitaminA_RAE_ug, for: portion) ?? 0) / 1_000_000,
-                                                   vitaminC: (data.amount(of: .vitaminC_mg, for: portion) ?? 0) / 1000, date: ViewController.selectedDate)
+                                                   vitaminC: (data.amount(of: .vitaminC_mg, for: portion) ?? 0) / 1000, date: HomeViewController.selectedDate)
                 
                 
                 self.onClose()
@@ -327,6 +329,16 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
         } else {
             self.dismiss(animated: true)
         }
+    }
+    
+    @objc
+    func onNutrition() {
+        
+        guard let food = self.searchedFoodData else {
+            return
+        }
+        
+        self.navigationController?.pushViewController(NutritionListViewController(food: food, amount: (Double(self.servingSizeInput.value) ?? 0) * self.servingUnit.multiplicator), animated: true)
     }
     
     func calculateUI() {

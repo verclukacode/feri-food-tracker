@@ -46,6 +46,7 @@ class SuggestionsViewController: UIViewController, UITableViewDelegate, UITableV
         super.viewDidLayoutSubviews()
         
         tableView.frame = view.bounds
+        tableView.contentInset.top = 30
         tableView.contentInset.bottom = 30
         
         emptyLabel.frame = view.bounds
@@ -82,7 +83,7 @@ class SuggestionsViewController: UIViewController, UITableViewDelegate, UITableV
         emptyLabel.numberOfLines = 0
         emptyLabel.isAccessibilityElement = true
         emptyLabel.accessibilityLabel = emptyLabel.text
-        tableView.addSubview(emptyLabel)
+        view.addSubview(emptyLabel)
         
         
         //Refesh
@@ -334,7 +335,6 @@ class SuggestionsViewController: UIViewController, UITableViewDelegate, UITableV
             answerLabel.frame = CGRect(x: 15, y: descriptionLabel.frame.minY + 15, width: backView.frame.width - 30, height: backView.frame.height - 185)
             
             actionButton.frame = CGRect(x: (backView.frame.width - 200) / 2, y: answerLabel.frame.maxY + 30, width: 200, height: 50)
-            actionButton.layer.cornerRadius = 12
             
             emptyIcon.frame = backView.bounds
             emptyIcon.layer.cornerRadius = 24
@@ -390,7 +390,7 @@ class SuggestionsViewController: UIViewController, UITableViewDelegate, UITableV
             backView.addSubview(graphView)
             
             actionButton.setTitle("Action".localized(), for: .normal)
-            actionButton.backgroundColor = .systemPurple
+            actionButton.backgroundColor = .accent
             actionButton.layer.cornerCurve = .continuous
             actionButton.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
             actionButton.tintColor = .white
@@ -419,7 +419,7 @@ class SuggestionsViewController: UIViewController, UITableViewDelegate, UITableV
             self.data = with
             
             self.iconView.image = with.icon
-            self.iconView.tintColor = with.tintColor
+            self.iconView.tintColor = .accent
             
             self.titleLabel.text = with.title
             self.descriptionLabel.text = with.description
@@ -497,7 +497,7 @@ class SuggestionsViewController: UIViewController, UITableViewDelegate, UITableV
                     self.actionButton.setImage(nil, for: .normal)
                 } else {
                     actionButton.setTitleColor(.white, for: .normal)
-                    self.actionButton.backgroundColor = data.tintColor
+                    self.actionButton.backgroundColor = .accent
                     
                     self.actionButton.setImage(nil, for: .normal)
                     self.actionButton.setTitle(data.actionTitle, for: .normal)
