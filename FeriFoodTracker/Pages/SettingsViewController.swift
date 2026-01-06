@@ -172,24 +172,24 @@ class SettingsViewController: UIViewController {
         let proteinPct = Int((UserData.shared.goalProtein * 4.0) / kcal * 100.0)
         let carbsPct   = Int((UserData.shared.goalCarbs * 4.0)   / kcal * 100.0)
         
-        proteinField.setValue(text: "\(proteinPct)%", color: .systemOrange)
-        carbsField.setValue(text: "\(carbsPct)%", color: .systemGreen)
-        fatField.setValue(text: "\(fatPct)%", color: .systemPurple)
+        proteinField.setValue(text: "\(proteinPct)%", color: .systemBlue)
+        carbsField.setValue(text: "\(carbsPct)%", color: .systemBlue)
+        fatField.setValue(text: "\(fatPct)%", color: .systemBlue)
         
         // Fiber & sugar in g
-        fiberField.setValue(text: "\(Int(UserData.shared.goalFiber.rounded())) g", color: .systemGreen)
-        sugarField.setValue(text: "\(Int(UserData.shared.goalSugar.rounded())) g", color: .systemRed)
+        fiberField.setValue(text: "\(Int(UserData.shared.goalFiber.rounded())) g", color: .systemBlue)
+        sugarField.setValue(text: "\(Int(UserData.shared.goalSugar.rounded())) g", color: .systemBlue)
         
         // Fats in g
-        saturatedFatField.setValue(text: "\(Int(UserData.shared.goalSaturatedFat.rounded())) g", color: .systemOrange)
-        monosaturatedFatField.setValue(text: "\(Int(UserData.shared.goalMonosaturatedFat.rounded())) g", color: .systemOrange)
+        saturatedFatField.setValue(text: "\(Int(UserData.shared.goalSaturatedFat.rounded())) g", color: .systemBlue)
+        monosaturatedFatField.setValue(text: "\(Int(UserData.shared.goalMonosaturatedFat.rounded())) g", color: .systemBlue)
         
         // Cholesterol mg
         cholesterolField.setValue(text: "\(Int(UserData.shared.goalCholesterol * 1000)) mg", color: .systemBlue)
         
         // Sodium & Potassium mg
-        sodiumField.setValue(text: "\(Int(UserData.shared.goalSodium * 1000)) mg", color: .systemPurple)
-        potassiumField.setValue(text: "\(Int(UserData.shared.goalPotassium * 1000)) mg", color: .systemGreen)
+        sodiumField.setValue(text: "\(Int(UserData.shared.goalSodium * 1000)) mg", color: .systemBlue)
+        potassiumField.setValue(text: "\(Int(UserData.shared.goalPotassium * 1000)) mg", color: .systemBlue)
         
         // Vitamins & minerals as % RDI
         let vitAPct     = Int((UserData.shared.goalVitaminA / 0.0009) * 100)
@@ -197,10 +197,10 @@ class SettingsViewController: UIViewController {
         let calciumPct  = Int((UserData.shared.goalCalcium / 1.0) * 100)
         let ironPct     = Int((UserData.shared.goalIron / 0.018) * 100)
         
-        vitaminAField.setValue(text: "\(vitAPct)%", color: .systemGreen)
-        vitaminCField.setValue(text: "\(vitCPct)%", color: .systemOrange)
+        vitaminAField.setValue(text: "\(vitAPct)%", color: .systemBlue)
+        vitaminCField.setValue(text: "\(vitCPct)%", color: .systemBlue)
         calciumField.setValue(text: "\(calciumPct)%", color: .systemBlue)
-        ironField.setValue(text: "\(ironPct)%", color: .systemRed)
+        ironField.setValue(text: "\(ironPct)%", color: .systemBlue)
     }
     
     
