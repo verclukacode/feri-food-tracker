@@ -217,7 +217,7 @@ class NutritionListViewController: UIViewController, UITableViewDelegate, UITabl
                 self?.data.append(("Vitamin A".localized(), UIColor.accent, vitaminA, UserData.shared.goalVitaminA))
                 self?.data.append(("Vitamin C".localized(), UIColor.accent, vitaminC, UserData.shared.goalVitaminC))
                 self?.data.append(("Calcium".localized(), UIColor.accent, calcium, UserData.shared.goalCalcium))
-                self?.data.append(("Iron".localized(), UIColor.systemRed, iron, UserData.shared.goalIron))
+                self?.data.append(("Iron".localized(), UIColor.accent, iron, UserData.shared.goalIron))
                 
                 DispatchQueue.main.async {
                     self?.tableView.reloadData()
