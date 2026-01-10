@@ -26,7 +26,7 @@ class APIManager {
     public static func getKey() -> String {
         let key1 = "RE".reversed()
         let key2 = "i".uppercased()
-        return "NOF" + key1 + key2
+        return "LALAF" + key1 + key2
     }
     
     
@@ -289,4 +289,158 @@ class APIManager {
         return APIManager.FoodData(foodDict: foodDict)
     }
     
+    func fetchFoodDataXML(fromEAN ean: String) async throws -> APIManager.FoodData? {
+        guard let url = URL(string: "https://api.getyoa.app/yoaapi/usda/foods/ean/xml") else {
+            return nil
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/xml", forHTTPHeaderField: "Accept")
+
+        let body: [String: Any] = [
+            "ean": ean,
+            "key": APIManager.getKey()
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+
+        let parser = FoodDataXMLParser()
+        guard let dict = parser.parse(data) else { return nil }
+
+        if let notFound = dict["notFound"] as? Bool, notFound { return nil }
+
+        return APIManager.FoodData(foodDict: dict)
+    }
+    
+}
+
+
+
+
+final class FoodDataXMLParser: NSObject, XMLParserDelegate {
+    private(set) var resultDict: [String: Any] = [:]
+    private var nutrients: [[String: Any]] = []
+
+    private var currentElement: String = ""
+    private var buffer: String = ""
+
+    private var insideNutrient = false
+    private var currentNutrientKey: String?
+    private var currentNutrientValue: Double?
+    private var currentNutrientUnit: String?
+
+    // Map OFF key -> your Nutrient enum rawValue
+    // Fill these with YOUR real rawValues:
+    private func nutrientId(for key: String) -> Int? {
+        switch key {
+        case "energy-kcal": return APIManager.FoodData.Nutrient.energyKcal.rawValue
+        case "proteins": return APIManager.FoodData.Nutrient.proteinG.rawValue
+        case "fat": return APIManager.FoodData.Nutrient.fatG.rawValue
+        case "carbohydrates": return APIManager.FoodData.Nutrient.carbsG.rawValue
+        case "fiber": return APIManager.FoodData.Nutrient.fiberG.rawValue
+        case "sugars": return APIManager.FoodData.Nutrient.sugarsG.rawValue
+
+        case "saturated-fat": return APIManager.FoodData.Nutrient.satFatG.rawValue
+        case "monounsaturated-fat": return APIManager.FoodData.Nutrient.monoFatG.rawValue
+        case "polyunsaturated-fat": return APIManager.FoodData.Nutrient.polyFatG.rawValue
+        case "cholesterol": return APIManager.FoodData.Nutrient.cholesterolMg.rawValue
+
+        case "sodium": return APIManager.FoodData.Nutrient.sodiumMg.rawValue
+        case "potassium": return APIManager.FoodData.Nutrient.potassiumMg.rawValue
+        case "calcium": return APIManager.FoodData.Nutrient.calciumMg.rawValue
+        case "iron": return APIManager.FoodData.Nutrient.ironMg.rawValue
+
+        case "vitamin-a": return APIManager.FoodData.Nutrient.vitaminA_RAE_ug.rawValue
+        case "vitamin-c": return APIManager.FoodData.Nutrient.vitaminC_mg.rawValue
+        case "vitamin-d": return APIManager.FoodData.Nutrient.vitaminD_ug.rawValue
+        case "vitamin-e": return APIManager.FoodData.Nutrient.vitaminE_mg.rawValue
+        case "vitamin-b1": return APIManager.FoodData.Nutrient.thiamin_mg.rawValue
+        case "vitamin-b2": return APIManager.FoodData.Nutrient.riboflavin_mg.rawValue
+        case "vitamin-pp": return APIManager.FoodData.Nutrient.niacin_mg.rawValue
+        case "vitamin-b6": return APIManager.FoodData.Nutrient.vitaminB6_mg.rawValue
+        case "folates": return APIManager.FoodData.Nutrient.folate_ug.rawValue
+        case "vitamin-b12": return APIManager.FoodData.Nutrient.vitaminB12_ug.rawValue
+        default: return nil
+        }
+    }
+
+    func parse(_ data: Data) -> [String: Any]? {
+        let parser = XMLParser(data: data)
+        parser.delegate = self
+        guard parser.parse() else { return nil }
+        resultDict["foodNutrients"] = nutrients
+        return resultDict
+    }
+
+    func parser(_ parser: XMLParser,
+                didStartElement elementName: String,
+                namespaceURI: String?,
+                qualifiedName qName: String?,
+                attributes attributeDict: [String : String] = [:]) {
+        currentElement = elementName
+        buffer = ""
+
+        if elementName == "Nutrient" {
+            insideNutrient = true
+            currentNutrientKey = nil
+            currentNutrientValue = nil
+            currentNutrientUnit = nil
+        }
+    }
+
+    func parser(_ parser: XMLParser, foundCharacters string: String) {
+        buffer += string
+    }
+
+    func parser(_ parser: XMLParser,
+                didEndElement elementName: String,
+                namespaceURI: String?,
+                qualifiedName qName: String?) {
+        let text = buffer.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if insideNutrient {
+            switch elementName {
+            case "key":
+                currentNutrientKey = text
+            case "value":
+                currentNutrientValue = Double(text)
+            case "unitName":
+                currentNutrientUnit = text
+            case "Nutrient":
+                if
+                    let k = currentNutrientKey,
+                    let id = nutrientId(for: k),
+                    let v = currentNutrientValue,
+                    let u = currentNutrientUnit
+                {
+                    nutrients.append([
+                        "nutrientId": id,
+                        "value": v,
+                        "unitName": u
+                    ])
+                }
+                insideNutrient = false
+            default:
+                break
+            }
+        } else {
+            switch elementName {
+            case "description":
+                resultDict["description"] = text
+            case "servingSize":
+                if let d = Double(text) { resultDict["servingSize"] = NSNumber(value: d) }
+            case "servingSizeUnit":
+                resultDict["servingSizeUnit"] = text
+            case "NotFound":
+                resultDict["notFound"] = (text.lowercased() == "true")
+            default:
+                break
+            }
+        }
+
+        buffer = ""
+    }
 }

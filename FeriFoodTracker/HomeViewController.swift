@@ -362,7 +362,7 @@ final class HomeViewController: UIViewController, ScanEANViewControllerDelegate 
         viewController.dismiss(animated: true) {
             Task { [weak self] in
                 guard let self else { return }
-                if let food = try await APIManager.shared.fetchFoodData(fromEAN: code) {
+                if let food = try await APIManager.shared.fetchFoodDataXML(fromEAN: code) {
                     let page = LogFoodViewController(food: food) {
                         self.refresh()
                     }

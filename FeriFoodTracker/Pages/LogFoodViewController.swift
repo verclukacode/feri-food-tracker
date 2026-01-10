@@ -115,7 +115,7 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
         backScroll.contentSize = CGSize(width: view.frame.width, height: dateInput.frame.maxY)
         backScroll.contentInset.bottom = 260 + view.safeAreaInsets.bottom
         
-        actionButton.frame = CGRect(x: (view.frame.width - 175) / 2, y: view.frame.height - view.safeAreaInsets.bottom - 80, width: 175, height: 50)
+        actionButton.frame = CGRect(x: (view.frame.width - 250) / 2, y: view.frame.height - view.safeAreaInsets.bottom - 80, width: 250, height: 50)
         
     }
     
@@ -338,7 +338,9 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
             return
         }
         
-        self.navigationController?.pushViewController(NutritionListViewController(food: food, amount: (Double(self.servingSizeInput.value) ?? 0) * self.servingUnit.multiplicator), animated: true)
+        let amount = (Double(self.servingNumberInput.value) ?? 0) * (Double(self.servingSizeInput.value) ?? 0) * self.servingUnit.multiplicator
+        
+        self.navigationController?.pushViewController(NutritionListViewController(food: food, amount: amount), animated: true)
     }
     
     func calculateUI() {
@@ -356,8 +358,11 @@ class LogFoodViewController: UIViewController, UITextViewDelegate {
         let protein = convert(self.proteinPer100g)
         let fat = convert(self.fatPer100g)
         
+        let amount = (Double(self.servingNumberInput.value) ?? 0) * (Double(self.servingSizeInput.value) ?? 0) * self.servingUnit.multiplicator
+        
         // Update servingSizeInput title to reflect the unit
         self.servingSizeInput.titleView.text = "Serving size (\(self.servingUnit.displayName))"
+        self.actionButton.setTitle("Log food - \(Int(self.searchedFoodData?.amount(of: .energyKcal, for: amount) ?? 0)) kcal", for: .normal)
         
         
         self.viewDidLayoutSubviews()
