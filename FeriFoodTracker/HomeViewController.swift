@@ -274,6 +274,17 @@ final class HomeViewController: UIViewController, ScanEANViewControllerDelegate 
                 viewController.delegate = self
                 self.present(UINavigationController(rootViewController: viewController), animated: true)
             }),
+            UIAction(title: "Describe", image: UIImage(systemName: "square.and.pencil"), handler: { [weak self] _ in
+                guard let self else { return }
+                let viewController = GroqTextAnalyzeViewController { data in
+                    guard let food = data else { return }
+                    let page = LogFoodViewController(food: food) {
+                        self.refresh()
+                    }
+                    self.present(UINavigationController(rootViewController: page), animated: true)
+                }
+                self.present(UINavigationController(rootViewController: viewController), animated: true)
+            }),
         ])
         addButton.showsMenuAsPrimaryAction = true
 
